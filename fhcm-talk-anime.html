@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FHCM — 説明用スライド</title>
+<style>
+:root{
+  --ink:#16202B;
+  --paper:#F4F6F8;
+  --rule:#C6D0DA;
+  --ok:#0E7C66;
+  --fail:#8E2E6B;
+  --unk:#97A2AE;
+  --world:#2F5D8C;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Menlo, "DejaVu Sans Mono", "Noto Sans Math", "Noto Sans CJK JP", "Hiragino Kaku Gothic ProN", monospace;
+  --jp: "Hiragino Kaku Gothic ProN", "Yu Gothic Medium", "Noto Sans JP", "Noto Sans CJK JP", system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:#DCE2E8;
+  font-family:var(--jp);
+  color:var(--ink);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+#stage{
+  position:relative;
+  width:1280px;height:720px;
+  transform-origin:center center;
+  background:var(--paper);
+  box-shadow:0 18px 60px rgba(22,32,43,.28);
+}
+.slide{
+  position:absolute;inset:0;
+  padding:56px 72px 56px 104px;
+  display:none;
+  flex-direction:column;
+}
+.slide.on{display:flex}
+
+/* left rail: which part of the argument we are in */
+.rail{position:absolute;left:0;top:0;bottom:0;width:56px;border-right:1px solid var(--rule);
+  display:flex;flex-direction:column;justify-content:center;gap:6px;align-items:center}
+.rail i{display:block;width:7px;border-radius:4px;background:var(--rule);height:26px}
+.rail i.act{background:var(--world)}
+.rail span{writing-mode:vertical-rl;font-size:11px;letter-spacing:.24em;color:#7B8794;margin-top:14px}
+
+h1{font-size:44px;line-height:1.18;font-weight:700;letter-spacing:-.02em}
+h2{font-size:31px;line-height:1.25;font-weight:700;letter-spacing:-.015em;margin-bottom:6px}
+.sub{font-size:15px;color:#5C6B7A;margin-bottom:22px;line-height:1.6}
+p{font-size:17px;line-height:1.75}
+.small{font-size:14.5px;line-height:1.7;color:#3E4B59}
+.tiny{font-size:12.5px;line-height:1.6;color:#6B7885}
+code,.m{font-family:var(--mono);font-size:.95em}
+b{font-weight:700}
+em{font-style:normal;color:var(--fail);font-weight:700}
+.ok{color:var(--ok)} .fl{color:var(--fail)} .wd{color:var(--world)}
+
+.cols{display:flex;gap:34px;flex:1;min-height:0}
+.cols>div{flex:1;min-width:0}
+ul{list-style:none}
+li{font-size:16px;line-height:1.65;margin-bottom:11px;padding-left:20px;position:relative}
+li::before{content:"";position:absolute;left:0;top:.62em;width:8px;height:2px;background:var(--rule)}
+li.plus::before{background:var(--ok);height:8px;width:8px;border-radius:50%;top:.45em}
+li.minus::before{background:var(--fail);height:8px;width:8px;border-radius:50%;top:.45em}
+
+.box{border:1px solid var(--rule);background:#fff;padding:16px 18px;margin:8px 0;flex-shrink:0}
+.box.k{border-left:4px solid var(--fail)}
+.box.w{border-left:4px solid var(--world)}
+.box.g{border-left:4px solid var(--ok)}
+.cap{font-size:12px;letter-spacing:.08em;color:#6B7885;margin-bottom:7px}
+
+/* inference rule */
+.rule{display:inline-flex;flex-direction:column;align-items:center;font-family:var(--mono);font-size:15px;margin:4px 16px 4px 0;vertical-align:middle}
+.rule .prem{padding:0 10px 3px;white-space:nowrap}
+.rule .bar{height:1px;background:var(--ink);align-self:stretch}
+.rule .concl{padding:3px 10px 0;white-space:nowrap}
+.rule .nm{font-size:11px;color:#6B7885;margin-top:3px}
+.ruleset{display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px}
+
+/* clause list */
+.clauses{font-family:var(--mono);font-size:14.5px;line-height:2.0;white-space:nowrap}
+
+/* propagation table */
+table.tb{border-collapse:collapse;font-family:var(--mono);font-size:17px;table-layout:fixed}
+table.tb th{font-weight:400;color:#6B7885;font-size:14px;padding:2px 0 7px;text-align:center;width:62px}
+table.tb th.lh{width:120px}
+table.tb td.lab{width:120px;text-align:right;padding:4px 14px 4px 0;color:var(--ink);white-space:nowrap;
+  border-left:3px solid transparent}
+table.tb td.c{width:62px;padding:4px 0;text-align:center}
+table.tb tr.wsep td{padding:10px 0 3px;font-size:13px;color:var(--world);border-bottom:1px solid var(--rule)}
+.chip{width:52px;height:38px;margin:0 auto;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:18px;font-weight:700;border-radius:3px;transition:all .18s ease}
+.chip.U{background:#E7EAEE;color:var(--unk);border:1px dashed #BCC5CE}
+.chip.T{background:var(--ok);color:#fff;border:1px solid var(--ok)}
+.chip.F{background:#fff;color:var(--fail);border:1.5px solid var(--fail)}
+.chip.hit{box-shadow:0 0 0 3.5px rgba(47,93,140,.38)}
+.wband{border-left:3px solid var(--world);padding-left:9px;margin:5px 0}
+.wband .wname{font-size:11px;color:var(--world);font-family:var(--mono);margin-bottom:1px}
+
+.btn{font-family:var(--jp);font-size:14px;border:1px solid var(--ink);background:#fff;color:var(--ink);
+  padding:7px 16px;cursor:pointer;border-radius:2px}
+.btn:disabled{opacity:.3;cursor:default}
+.btn:focus-visible{outline:2px solid var(--world);outline-offset:2px}
+
+.pager{position:absolute;right:26px;bottom:20px;font-family:var(--mono);font-size:12px;color:#8C97A3}
+.tag{position:absolute;left:104px;top:24px;font-size:11.5px;letter-spacing:.14em;color:#8C97A3}
+
+.tape{display:flex;gap:4px;font-family:var(--mono);margin:10px 0}
+.tape span{width:38px;height:38px;border:1px solid var(--rule);background:#fff;display:flex;
+  align-items:center;justify-content:center;font-size:17px;position:relative}
+.tape span i{position:absolute;bottom:-17px;font-size:10.5px;color:#8C97A3;font-style:normal}
+.tape span.hi{border-color:var(--ok);background:#E9F4F1}
+.tape span.no{border-color:var(--fail);background:#FBECF4}
+
+svg{display:block}
+.st{fill:#fff;stroke:var(--ink);stroke-width:1.3}
+.stl{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Noto Serif",Georgia,serif;font-style:italic;font-size:18px;fill:var(--ink);text-anchor:middle;dominant-baseline:central}
+.gate{font-family:"Helvetica Neue",Arial,"Noto Sans",sans-serif;font-style:normal;font-weight:600;font-size:22px;fill:var(--world);text-anchor:middle;dominant-baseline:central}
+.el{font-family:var(--mono);font-size:14px;fill:#455464;text-anchor:middle}
+.ln{stroke:var(--ink);stroke-width:1.3;fill:none}
+.init{stroke:var(--ink);stroke-width:1.7;fill:none}
+.u{font-family:var(--jp);font-size:1.12em;padding:0 .06em}
+
+/* --- ladder demos --- */
+.demo{display:flex;flex-direction:column;gap:10px}
+.dtape{font-family:var(--mono);font-size:15px;margin-top:8px;color:#5C6B7A}
+.dtape .sp{display:inline-block;width:120px}
+.dtape b{display:inline-block;width:62px;text-align:center;font-weight:400}
+.dctl{display:flex;gap:9px;align-items:center;margin-top:2px}
+.badge{font-family:var(--mono);font-size:10.5px;color:#fff;padding:2px 8px;border-radius:2px;letter-spacing:.04em}
+.b-fire{background:var(--ok)} .b-close{background:var(--fail)} .b-stuck{background:#B07A16}
+.b-init{background:#8C97A3}
+.chip.mk{box-shadow:0 0 0 3.5px rgba(176,122,22,.5)}
+table.tb.sm td.lab{width:104px;padding-right:12px}
+table.tb.sm th.lh{width:104px}
+table.tb.sm th{width:58px} table.tb.sm td.c{width:58px}
+table.tb.sm .chip{width:48px;height:35px;font-size:17px}
+.dtape.sm .sp{width:104px} .dtape.sm b{width:58px}
+
+/* ladder overview */
+table.lad{border-collapse:collapse;width:100%;font-size:14.5px;margin-top:6px}
+table.lad th{text-align:left;font-weight:400;font-size:11.5px;color:#6B7885;padding:0 12px 7px 0;border-bottom:1px solid var(--rule)}
+table.lad td{padding:11px 12px 11px 0;border-bottom:1px solid var(--rule);vertical-align:top;line-height:1.55}
+table.lad td.n{font-family:var(--mono);font-size:13px;color:var(--world);white-space:nowrap;width:150px}
+table.lad td.i{font-family:var(--mono);font-size:12.5px;width:150px;color:var(--ink)}
+table.lad tr.hl td{background:#FBECF4}
+.neg{stroke:var(--fail);stroke-width:1.6;fill:none;stroke-dasharray:6 4}
+.dot{stroke:#B1442E;stroke-width:1.5;fill:none;stroke-dasharray:3 3}
+.band{fill:none;stroke:var(--rule);stroke-width:1;stroke-dasharray:3 5}
+.bl{font-family:var(--mono);font-size:12px;fill:var(--world)}
+
+@media print{
+  @page{size:1280px 720px;margin:0}
+  body{background:#fff;display:block;overflow:visible}
+  #stage{transform:none !important;box-shadow:none;width:1280px;height:720px}
+  .slide{display:flex !important;page-break-after:always;position:relative;height:720px}
+  .noprint{display:none}
+}
+@media (prefers-reduced-motion: reduce){.chip{transition:none}}
+</style>
+</head>
+<body>
+<div id="stage">
+<svg aria-hidden="true" focusable="false" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+  <marker id="ar"   markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#16202B"/></marker>
+  <marker id="ar2"  markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#16202B"/></marker>
+  <marker id="arn"  markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#8E2E6B"/></marker>
+  <marker id="arn2" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 L9 4.5 L0 9 z" fill="#8E2E6B"/></marker>
+  <marker id="ad"   markerWidth="8" markerHeight="8" refX="7" refY="4"   orient="auto"><path d="M0 0 L8 4 L0 8 z"   fill="#B1442E"/></marker>
+  <marker id="arw"  markerWidth="8" markerHeight="8" refX="7" refY="4"   orient="auto"><path d="M0 0 L8 4 L0 8 z"   fill="#B07A16"/></marker>
+</defs></svg>
+
+<!-- 1 -->
+<section class="slide on" data-part="0">
+  <div class="rail"><i></i><i></i><i></i><span>FHCM</span></div>
+  <div style="flex:1;display:flex;flex-direction:column;justify-content:center">
+    <div class="tiny" style="margin-bottom:26px">POPL'27 submission #341</div>
+    <h1>Linear-Time Propagation of Functional Horn<br>Programs with a Completion Modality</h1>
+    <p style="margin-top:24px;max-width:74ch">lookaround 付き regex、JavaScript の matching、PEG、2DPDA。<br>
+    それぞれ別々に作られた <b>product-linear</b> <span class="m">O(|P|·|w|)</span> アルゴリズムに、<br>
+    共通の計算モデルを与える。</p>
+    <div style="display:flex;gap:14px;margin-top:34px">
+      <div class="box g" style="flex:1"><div class="cap">Δ1</div><div class="small">セルが真偽値ではなく<br><b>選ばれた終点 <span class="m">ok(j)</span></b> を持つ</div></div>
+      <div class="box k" style="flex:1"><div class="cap">Δ2</div><div class="small">completion world を<br><b>述語ではなくセル</b>単位で切る</div></div>
+      <div class="box w" style="flex:1"><div class="cap">Δ3</div><div class="small">線形性を保証する<br><b>source-flow DAG</b> と、その最適性</div></div>
+    </div>
+  </div>
+  <div class="pager">1 / 21</div>
+</section>
+
+<!-- 2 -->
+<section class="slide" data-part="0">
+  <div class="rail"><i class="act"></i><i></i><i></i><span>動機</span></div>
+  <div class="tag">なぜこの論文があるか</div>
+  <h2 style="margin-top:18px">同じ <span class="m">O(|E|·|w|)</span> が、三度、別々に発明された</h2>
+  <div class="sub">どれも「バックトラックの指数爆発を memo 表で潰す」構造を持つが、正当性の議論は毎回ゼロから。</div>
+  <div class="cols">
+    <div>
+      <div class="box"><div class="cap">Mamouras–Chattopadhyay, POPL'24 / Chattopadhyay et al. '25</div>
+        <div class="small">nested lookaround 付き regex の <b>Boolean membership</b>。真偽値の表。</div></div>
+      <div class="box"><div class="cap">Fujinami–Hasuo, ESOP'24</div>
+        <div class="small">endpoint-preserving なバックトラック matcher。lookaround + atomic group。<span class="fl">positive lookaround 内 / atomic group 内の capture は取れない。</span></div></div>
+      <div class="box"><div class="cap">Barrière–Pit-Claudel, PLDI'24</div>
+        <div class="small">JavaScript 準拠の matching (JSCore)。capture 付き。<span class="fl">atomic group はなし。</span></div></div>
+    </div>
+    <div>
+      <div class="box w" style="margin-top:0">
+        <div class="cap">この論文の問い</div>
+        <p style="font-size:16.5px">三つに共通する<b>数学的な核</b>は何か。<br>それを取り出せば、<br>
+        (a) 正当性と計算量が一度で済み、<br>
+        (b) 機能の<b>合成</b>が自由になり、<br>
+        (c) どこまでが本質的な制約かが分かる。</p>
+      </div>
+      <div class="box g">
+        <div class="cap">答え</div>
+        <p style="font-size:16.5px"><b>FHCM</b><br>
+        = Functional Horn programs<br>&nbsp;&nbsp;with a Completion Modality</p>
+        <div class="small" style="margin-top:9px">Horn 節の線形時間伝播 (Dowling–Gallier) を、<br>
+        ① 終点値つき ② 完了様相つき ③ 参照経路制限つき<br>に拡張したもの。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">2 / 21</div>
+</section>
+
+<!-- L0 : ladder overview -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">助走の地図</div>
+  <h2 style="margin-top:16px">命令を一つずつ点けながら、Horn プログラムに翻訳していく</h2>
+  <div class="sub">2BFA の命令セットは <span class="m">σ,±1</span> / <span class="m">∧</span> / <span class="m">∨</span> / <span class="m">¬</span> / <span class="m">⊤</span> / <span class="m">⊥</span> の 6 つだけ。一度に一つずつ足していきます。</div>
+  <table class="lad">
+    <tr><th>段</th><th>使う命令</th><th>Horn 側で新しく必要になるもの</th></tr>
+    <tr><td class="n">① one-way</td><td class="i">σ,+1 &nbsp;⊤</td>
+      <td>前提の位置は必ず <span class="m">i+1</span>。セル依存グラフは <b>DAG</b> なので、右から左へ<b>一度なめるだけ</b>。不動点反復すら要らない。</td></tr>
+    <tr><td class="n">②a two-way</td><td class="i">+ σ,−1</td>
+      <td>前提が <span class="m">i−1</span> も指す。確定していく順序が<b>位置について単調でなくなる</b>ので、決め打ちの走査では書けない。<b>ワークリスト</b>が要る。</td></tr>
+    <tr><td class="n">②b two-way</td><td class="i">(同上)</td>
+      <td>依存グラフに<b>循環</b>が作れてしまう。<span class="fl">根拠づけられない循環は F</span> — <b>最小不動点</b>を取る意味がここで初めて目に見える。</td></tr>
+    <tr><td class="n">③ alternating</td><td class="i">+ ∧ ∨</td>
+      <td><b>何も要らない。</b> <span class="m">∧</span> は「前提 2 つの節 1 本」、<span class="m">∨</span> は「同じ head の節 2 本」。Horn 節の形がそのまま alternation なので、アルゴリズムは 1 行も変わらない。run が<b>木</b>になるだけ。</td></tr>
+    <tr class="hl"><td class="n">④ stratified ¬</td><td class="i">+ ¬ と rank β</td>
+      <td><b>単調性が壊れる。</b> 「まだ証明がない」は事実として使えない。world を切って<b>飽和させ、閉じてから</b>読む必要があり、そのための literal が <span class="m fl">⇑</span>。</td></tr>
+  </table>
+  <div class="box w" style="margin-top:16px">
+    <div class="cap">各段でやること</div>
+    <div class="small">自動機を描く → Horn 節に落とす → <b>表が埋まっていく様子を実際に動かす</b>。②b ③ ④ は語が同じか近いので、差分だけを見ていけます。Δ2 でもう一度、今度は終点値つきで同じことをやります。</div>
+  </div>
+  <div class="pager">3 / 21</div>
+</section>
+
+<!-- L1 : one-way -->
+<section class="slide" data-part="1" data-demo="d1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">① one-way automaton</div>
+  <h2 style="margin-top:14px">まず、ただの NFA を Horn プログラムとして読む</h2>
+  <div class="sub"><span class="m">q@i</span> = 「状態 q で位置 i から読み始めて、残りの入力を受理できるか」。<b>これが以降ずっとセルの意味です。</b></div>
+  <div class="cols">
+    <div>
+      <svg viewBox="-40 -18 440 138" style="width:100%;max-height:186px">
+        <g>
+          <rect class="st" x="24" y="44" width="52" height="30" rx="5"/><text class="stl" x="50" y="59">q0</text>
+          <path class="ln" d="M34 44 C 6 -2, 94 -2, 66 44" marker-end="url(#ar2)"/>
+          <text class="el" x="50" y="-4">a, →</text>
+          <path class="ln" d="M76 59 H 160" marker-end="url(#ar2)"/><text class="el" x="118" y="51">b, →</text>
+          <rect class="st" x="160" y="44" width="52" height="30" rx="5"/><text class="stl" x="186" y="59">q1</text>
+          <path class="ln" d="M212 59 H 288" marker-end="url(#ar2)"/><text class="el" x="250" y="51">⊣</text>
+          <circle class="st" cx="304" cy="59" r="13"/><circle class="st" cx="304" cy="59" r="9"/>
+          <text class="el" x="304" y="90">ok</text>
+          <path class="init" d="M-32 59 H 18" marker-end="url(#ar2)"/>
+          <text class="el" x="-8" y="44" style="fill:#6B7885">開始</text>
+        </g>
+      </svg>
+      <div class="box" style="border-left:3px solid var(--world);margin-top:6px">
+        <div class="cap">Horn 節 — 遷移 1 本につき 1 本</div>
+        <div class="clauses" style="font-size:14px">
+          q0@i ← ŵ[i]=a, q0@(i+1)<br>
+          q0@i ← ŵ[i]=b, q1@(i+1)<br>
+          q1@i ← ŵ[i]=⊣
+        </div>
+      </div>
+      <div class="box g">
+        <div class="cap">この段のポイント</div>
+        <div class="small">前提のセルは必ず <b>位置 i+1</b>。依存が右向きの一方通行なので、セル依存グラフは <b>DAG</b>。<br>
+        右端から左へ一度なめれば表が埋まる。<b>ワークリストも不動点も要らない。</b></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div id="d1-tbl"></div>
+      <div class="box" id="d1-cap" style="min-height:118px;margin-top:14px"></div>
+      <div class="dctl noprint" style="margin-top:14px">
+        <button class="btn" data-demo="d1" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d1" data-dir="1">次へ</button>
+        <span class="tiny" id="d1-cnt"></span>
+      </div>
+    </div>
+  </div>
+  <div class="pager">4 / 21</div>
+</section>
+
+<!-- L2a : two-way, genuine reversal -->
+<section class="slide" data-part="1" data-demo="d2">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">②a two-way automaton — 向きの反転</div>
+  <h2 style="margin-top:14px">右へ走って <span class="m">c</span> を見つけ、そこから<b>左へ戻って</b> <span class="m">ab</span> を確認する</h2>
+  <div class="sub">前提が <span class="m">i+1</span> と <span class="m">i−1</span> の両方に現れるようになります。<span class="wd">なお <span class="m">g, h</span> の対は、③④ に出てくる ab の lookbehind probe そのものです。</span></div>
+  <div class="cols">
+    <div>
+      <svg viewBox="0 -30 440 156" style="width:100%;max-height:190px">
+        <g>
+          <circle class="st" cx="30" cy="54" r="12"/><circle class="st" cx="30" cy="54" r="8"/>
+          <text class="el" x="30" y="84" style="fill:#6B7885">ok</text>
+          <path class="ln" d="M92 54 H 46" marker-end="url(#ar2)"/><text class="el" x="69" y="46">a</text>
+          <rect class="st" x="92" y="40" width="46" height="28" rx="5"/><text class="stl" x="115" y="54">h</text>
+          <path class="ln" d="M196 54 H 140" marker-end="url(#ar2)"/><text class="el" x="168" y="46">b, ←</text>
+          <rect class="st" x="196" y="40" width="46" height="28" rx="5"/><text class="stl" x="219" y="54">g</text>
+          <path class="ln" d="M300 54 H 244" marker-end="url(#ar2)"/><text class="el" x="272" y="46">c, ←</text>
+          <rect class="st" x="300" y="40" width="46" height="28" rx="5"/><text class="stl" x="323" y="54">f</text>
+          <path class="ln" d="M307 40 C 274 -16, 372 -16, 339 40" marker-end="url(#ar2)"/>
+          <text class="el" x="323" y="-20">a か b, →</text>
+          <path class="init" d="M424 54 H 352" marker-end="url(#ar2)"/>
+          <text class="el" x="323" y="90" style="fill:#6B7885">右へスキャン</text>
+          <text class="el" x="170" y="112" style="fill:#B07A16">見つけたら左へ 2 歩戻る</text>
+        </g>
+      </svg>
+      <div class="box" style="border-left:3px solid var(--world);margin-top:4px">
+        <div class="cap">Horn 節</div>
+        <div class="clauses" style="font-size:13.5px">
+          f@i ← ŵ[i] ∈ {a,b}, f@(i+1) &nbsp;<span style="color:#6B7885">右へ</span><br>
+          f@i ← ŵ[i]=c, <span style="color:#B07A16">g@(i−1)</span> &nbsp;&nbsp;&nbsp;<span style="color:#B07A16">反転</span><br>
+          g@i ← ŵ[i]=b, <span style="color:#B07A16">h@(i−1)</span><br>
+          h@i ← ŵ[i]=a
+        </div>
+      </div>
+      <div class="box k">
+        <div class="cap">この段のポイント</div>
+        <div class="small">確定していく向きが<b>位置について単調でなくなった</b> (2→3 は左へ、3→4 は右へ)。<br>
+        どのセルがいつ確定するかは<b>データが決める</b>ので、決め打ちの走査順では書けない。<b>ここで初めてワークリストが要る。</b></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div id="d2-tbl"></div>
+      <div class="box" id="d2-cap" style="min-height:118px;margin-top:14px"></div>
+      <div class="dctl noprint" style="margin-top:14px">
+        <button class="btn" data-demo="d2" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d2" data-dir="1">次へ</button>
+        <span class="tiny" id="d2-cnt"></span>
+      </div>
+    </div>
+  </div>
+  <div class="pager">5 / 21</div>
+</section>
+
+<!-- L2b : two-way, unfounded cycle -->
+<section class="slide" data-part="1" data-demo="d2b">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">②b two-way automaton — 循環と最小不動点</div>
+  <h2 style="margin-top:14px">two-way では、進んだ分を戻って打ち消す機械が書けてしまう</h2>
+  <div class="sub">②a には循環がありませんでした。しかし <span class="m">σ,−1</span> がある以上、循環は避けられません。</div>
+  <div class="cols">
+    <div>
+      <svg viewBox="-40 0 440 108" style="width:100%;max-height:144px">
+        <g>
+          <path class="init" d="M-32 52 H 18" marker-end="url(#ar2)"/>
+          <rect class="st" x="24" y="38" width="48" height="28" rx="5"/><text class="stl" x="48" y="52">p</text>
+          <rect class="st" x="172" y="38" width="48" height="28" rx="5"/><text class="stl" x="196" y="52">q</text>
+          <path class="ln" d="M78 44 C 114 30, 132 30, 168 44" marker-end="url(#ar2)"/>
+          <text class="el" x="122" y="28">a, →</text>
+          <path class="ln" d="M166 60 C 132 74, 114 74, 78 60" marker-end="url(#ar2)"/>
+          <text class="el" x="122" y="88" style="fill:#B07A16">b, ←</text>
+          <path class="ln" d="M220 52 H 292" marker-end="url(#ar2)"/><text class="el" x="256" y="44">⊣</text>
+          <circle class="st" cx="310" cy="52" r="13"/><circle class="st" cx="310" cy="52" r="9"/>
+        </g>
+      </svg>
+      <div class="box" style="border-left:3px solid var(--world);margin-top:4px">
+        <div class="cap">Horn 節 &nbsp;(w = aba⊣)</div>
+        <div class="clauses" style="font-size:13.5px">
+          p@i ← ŵ[i]=a, q@(i+1)<br>
+          q@i ← ŵ[i]=b, <span style="color:#B07A16">p@(i−1)</span><br>
+          q@i ← ŵ[i]=⊣
+        </div>
+      </div>
+      <div class="cap" style="margin-top:10px">セル依存グラフ</div>
+      <svg viewBox="0 0 380 92" style="width:100%;max-height:90px;margin-top:2px">
+        <g font-family="ui-monospace, DejaVu Sans Mono, monospace" font-size="13">
+          <ellipse cx="64" cy="48" rx="36" ry="17" fill="#fff" stroke="#B07A16" stroke-width="1.7"/>
+          <text x="64" y="48" text-anchor="middle" dominant-baseline="central">p@1</text>
+          <ellipse cx="212" cy="48" rx="36" ry="17" fill="#fff" stroke="#B07A16" stroke-width="1.7"/>
+          <text x="212" y="48" text-anchor="middle" dominant-baseline="central">q@2</text>
+          <path d="M98 38 C 128 16, 150 16, 180 36" fill="none" stroke="#B07A16" stroke-width="1.7" marker-end="url(#arw)"/>
+          <path d="M180 60 C 150 80, 128 80, 98 58" fill="none" stroke="#B07A16" stroke-width="1.7" marker-end="url(#arw)"/>
+          <text x="138" y="12" font-size="11" fill="#B07A16" text-anchor="middle">互いに待つ</text>
+          <ellipse cx="330" cy="48" rx="36" ry="17" fill="#fff" stroke="#C6D0DA"/>
+          <text x="330" y="48" text-anchor="middle" dominant-baseline="central">q@4</text>
+          <text x="330" y="82" font-size="11" fill="#6B7885" text-anchor="middle">こちらは根拠あり</text>
+        </g>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div id="d2b-tbl"></div>
+      <div class="box" id="d2b-cap" style="min-height:130px;margin-top:14px"></div>
+      <div class="dctl noprint" style="margin-top:14px">
+        <button class="btn" data-demo="d2b" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d2b" data-dir="1">次へ</button>
+        <span class="tiny" id="d2b-cnt"></span>
+      </div>
+      <div class="box g" style="margin-top:12px">
+        <div class="cap">論文との接続</div>
+        <div class="small">PEG 側の同じ現象が §6.2.1 の <b>SwitchStratified</b>。<span class="m">P ← &amp;←Q, Q ← a &amp;→R, R ← aP</span> が、向きの違う 2 本の消費で進捗を打ち消し合う。well-formedness 条件はこれを排除するためにあります。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">6 / 21</div>
+</section>
+
+<!-- L3 : alternating -->
+<section class="slide" data-part="1" data-demo="d3">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">③ alternating two-way automaton</div>
+  <h2 style="margin-top:14px"><span class="m">∧ / ∨</span> を足しても、アルゴリズムは 1 行も変わらない</h2>
+  <div class="sub">例: <span class="m">E₃ = a ?←(ab) ?→(b<span class="u">∪</span>c)</span> — 論文の走る例から<b>否定だけを外した</b>もの。語も <span class="m">w = abac</span> のまま。</div>
+  <div class="cols">
+    <div>
+      <svg viewBox="-40 0 500 176" style="width:100%;max-height:204px">
+        <g>
+          <path class="init" d="M-32 22 H 4" marker-end="url(#ar2)"/>
+          <rect class="st" x="10" y="8" width="44" height="28" rx="5"/><text class="stl" x="32" y="22">u</text>
+          <path class="ln" d="M54 22 H 112" marker-end="url(#ar2)"/><text class="el" x="83" y="14">a, →</text>
+          <rect class="st" x="112" y="8" width="44" height="28" rx="5"/><text class="stl" x="134" y="22">m</text>
+          <text class="gate" x="174" y="22">∧</text>
+          <path class="ln" d="M168 36 C 140 54, 70 60, 40 82" marker-end="url(#ar2)"/>
+          <path class="ln" d="M180 36 C 210 56, 250 62, 270 82" marker-end="url(#ar2)"/>
+          <text class="el" x="104" y="58" style="fill:#6B7885">x</text>
+          <text class="el" x="242" y="60" style="fill:#6B7885">y</text>
+
+          <rect class="st" x="14" y="86" width="44" height="28" rx="5"/><text class="stl" x="36" y="100">x</text>
+          <path class="ln" d="M58 100 H 106" marker-end="url(#ar2)"/><text class="el" x="82" y="92">b, ←</text>
+          <rect class="st" x="108" y="86" width="44" height="28" rx="5"/><text class="stl" x="130" y="100">x′</text>
+          <path class="ln" d="M152 100 H 196" marker-end="url(#ar2)"/><text class="el" x="174" y="92">a, ←</text>
+          <circle class="st" cx="212" cy="100" r="12"/><circle class="st" cx="212" cy="100" r="8"/>
+          <text class="el" x="112" y="140" style="fill:#6B7885">「ここで終わる 2 文字が ab」</text>
+
+          <rect class="st" x="250" y="86" width="44" height="28" rx="5"/><text class="stl" x="272" y="100">y</text>
+          <text class="gate" x="312" y="100">∨</text>
+          <path class="ln" d="M326 92 C 342 82, 350 80, 362 79" marker-end="url(#ar2)"/>
+          <path class="ln" d="M326 108 C 342 118, 350 120, 362 121" marker-end="url(#ar2)"/>
+          <text class="el" x="340" y="68">b, →</text>
+          <text class="el" x="340" y="142">c, →</text>
+          <circle class="st" cx="378" cy="78" r="11"/><circle class="st" cx="378" cy="78" r="7"/>
+          <circle class="st" cx="378" cy="122" r="11"/><circle class="st" cx="378" cy="122" r="7"/>
+          <text class="el" x="352" y="160" style="fill:#6B7885">「ここが b か c」</text>
+        </g>
+      </svg>
+      <div class="box" style="border-left:3px solid var(--world);margin-top:4px">
+        <div class="cap">Horn 節 — ∧ は前提 2 つ、∨ は節 2 本</div>
+        <div class="clauses" style="font-size:13.5px">
+          u@i &nbsp;← ŵ[i]=a, m@(i+1)<br>
+          m@i &nbsp;← <span class="ok">x@i, y@i</span> &nbsp;&nbsp;<span style="color:#6B7885">← ∧ ノード</span><br>
+          x@i &nbsp;← ŵ[i]=b, x′@(i−1)<br>
+          x′@i ← ŵ[i]=a<br>
+          y@i &nbsp;← ŵ[i]=b &nbsp;&nbsp;<span style="color:#6B7885">┐</span><br>
+          y@i &nbsp;← ŵ[i]=c &nbsp;&nbsp;<span style="color:#6B7885">┘ ∨ ノード</span>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div id="d3-tbl"></div>
+      <div class="box" id="d3-cap" style="min-height:112px;margin-top:12px"></div>
+      <div class="dctl noprint" style="margin-top:14px">
+        <button class="btn" data-demo="d3" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d3" data-dir="1">次へ</button>
+        <span class="tiny" id="d3-cnt"></span>
+      </div>
+    </div>
+  </div>
+  <div class="pager">7 / 21</div>
+</section>
+
+<!-- L4 : why negation breaks Horn -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">④ 否定を入れる — まず、素朴にやると失敗する</div>
+  <h2 style="margin-top:14px">③ の <span class="m">?←(ab)</span> を <span class="m">!←(ab)</span> に変えるだけで、Horn の単調性が壊れる</h2>
+  <div class="sub">節はたった 1 箇所しか変わりません: <span class="m">m@i ← x@i, y@i</span> が <span class="m">m@i ← <span class="fl">¬x@i</span>, y@i</span> になる。</div>
+  <div class="cols">
+    <div>
+      <div class="box k" style="margin-top:0">
+        <div class="cap">何が壊れるか</div>
+        <div class="small">Horn の伝播は<b>単調</b>で、事実は増える一方です。<span class="m fl">¬x@i</span> を「<b>今</b> x@i の証明がない」と読むと、後から x@i が導出された瞬間にその発火が嘘になる。</div>
+      </div>
+      <div class="box" style="border-left:3px solid var(--fail)">
+        <div class="cap">③ の表で実際に起きること</div>
+        <div class="small">ステップ 1 の時点では <span class="m">x@2</span> はまだ <span class="m">U</span>。ここで <span class="m fl">¬x@2</span> を真として発火させると <span class="m">m@2</span> が出る。<br>
+        ところがステップ 2 で <span class="m ok">x@2 = T</span> になる。<br>
+        <b>答えが伝播の順序に依存してしまう。</b></div>
+      </div>
+      <div class="box" style="border-left:3px solid var(--fail)">
+        <div class="cap">もっと悪い場合</div>
+        <div class="clauses" style="font-size:14px">p@i ← ¬q@i &nbsp;&nbsp;&nbsp; q@i ← ¬p@i</div>
+        <div class="small" style="margin-top:7px">どの順序でも一貫した答えがない。<b>これは意味論の問題であって、実装の問題ではない。</b></div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">解決 — 読んでよい失敗と、読んではいけない失敗を分ける</div>
+      <svg viewBox="0 0 430 226" style="width:100%;max-height:224px;margin-top:8px">
+        <g font-family="ui-monospace, DejaVu Sans Mono, monospace">
+          <rect x="0" y="10" width="430" height="88" rx="4" fill="#fff" stroke="#C6D0DA"/>
+          <text x="14" y="32" font-size="12" fill="#6B7885" font-family="inherit">表がまだ開いている間</text>
+          <rect x="14" y="44" width="34" height="24" rx="3" fill="#E7EAEE" stroke="#BCC5CE" stroke-dasharray="3 2"/>
+          <text x="31" y="56" font-size="12" fill="#97A2AE" text-anchor="middle" dominant-baseline="central">U</text>
+          <text x="60" y="57" font-size="12" fill="#16202B" dominant-baseline="central">証明がない = <tspan font-weight="700">まだ分からない</tspan></text>
+          <text x="14" y="86" font-size="11.5" fill="#8E2E6B" dominant-baseline="central">この U を「失敗」として読んではいけない</text>
+
+          <path d="M215 104 V 126" stroke="#8E2E6B" stroke-width="1.6" marker-end="url(#arn2)"/>
+          <text x="228" y="118" font-size="11.5" fill="#8E2E6B" font-family="inherit">飽和 → 閉包</text>
+
+          <rect x="0" y="132" width="430" height="88" rx="4" fill="#FBECF4" stroke="#8E2E6B"/>
+          <text x="14" y="154" font-size="12" fill="#8E2E6B" font-family="inherit">世界を閉じた後</text>
+          <rect x="14" y="166" width="34" height="24" rx="3" fill="#fff" stroke="#8E2E6B" stroke-width="1.5"/>
+          <text x="31" y="178" font-size="12" fill="#8E2E6B" text-anchor="middle" dominant-baseline="central">F</text>
+          <text x="60" y="179" font-size="12" fill="#16202B" dominant-baseline="central">証明がない = <tspan font-weight="700">確定した失敗</tspan></text>
+          <text x="14" y="208" font-size="11.5" fill="#8E2E6B" dominant-baseline="central">この F だけを読む literal が &#8199;R@i ⇑&#8199; = □(R@i = fail)</text>
+        </g>
+      </svg>
+      <div class="box g" style="margin-top:12px">
+        <div class="cap">そのために要るのが rank map</div>
+        <div class="small">否定の中身を<b>厳密に下位の world</b> に置く (<span class="m">q → ¬r ⟹ β(r) &lt; β(q)</span>)。下から順に、飽和 → 閉包 → 上へ、と進めば、<span class="m fl">⇑</span> は必ず閉じた表からしか読まれない。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">8 / 21</div>
+</section>
+
+<!-- 3 -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">④ stratified negation — 走る例</div>
+  <h2 style="margin-top:18px">③ の <span class="m">?←</span> を <span class="m">!←</span> に変え、外側にもう一段の否定を被せる</h2>
+  <div class="sub">これが論文の走る例。語は <span class="m">w = abac</span> のままです。</div>
+  <div class="box" style="background:#fff">
+    <div style="font-family:var(--mono);font-size:20px;margin-bottom:6px">
+      E<sub>ex</sub> &nbsp;=&nbsp; !<sub>→</sub>( a &nbsp;!<sub>←</sub>(ab)&nbsp; ?<sub>→</sub>(b<span class="u">∪</span>c) ) &nbsp;any
+    </div>
+    <div class="small"><span class="m">?</span> = 肯定、<span class="m">!</span> = 否定、<span class="m">→</span> = lookahead、<span class="m">←</span> = lookbehind。すべて zero-width。</div>
+  </div>
+  <div class="cols" style="margin-top:14px">
+    <div>
+      <div class="cap">内側 E<sub>inn</sub> = a !<sub>←</sub>(ab) ?<sub>→</sub>(b<span class="u">∪</span>c) を w = abac 上で走らせる</div>
+      <div class="tape" style="margin-top:14px">
+        <span class="no">a<i>1</i></span><span class="no">b<i>2</i></span><span class="hi">a<i>3</i></span><span class="no">c<i>4</i></span>
+      </div>
+      <ul style="margin-top:26px">
+        <li>位置 3: <span class="m">a</span> を読んで 4 へ。4 で終わる文字列は <span class="m">ac</span> ≠ <span class="m">ab</span> なので <span class="m">!<sub>←</sub>(ab)</span> は<span class="ok">成功</span>。<span class="m">w[4]=c ∈ {b,c}</span> で <span class="m">?<sub>→</sub></span> も<span class="ok">成功</span>。</li>
+        <li>位置 1: 4 と同様に進むが、2 で終わる文字列が <span class="m">ab</span> なので否定 lookbehind が<span class="fl">失敗</span>。</li>
+        <li>位置 2, 4: 先頭の <span class="m">a</span> で即<span class="fl">失敗</span>。</li>
+      </ul>
+    </div>
+    <div>
+      <div class="box k" style="margin-top:18px">
+        <div class="cap">結論</div>
+        <p><span class="m">E<sub>inn</sub></span> が成功するのは <b>位置 3 だけ</b>。<br>
+        よって外側の <span class="m">!<sub>→</sub>(E<sub>inn</sub>)</span> は <b>{1, 2, 4}</b> で成功し、<br>
+        <span class="m">E<sub>ex</sub></span> 全体は 1, 2, 4 でマッチ、<b>3 で失敗</b>。</p>
+      </div>
+      <div class="small" style="margin-top:16px">この「位置 3 だけが落ちる」という一点を、<br>
+      以降すべての表現(自動機・Horn・表)で再現します。</div>
+      <div class="tiny" style="margin-top:20px">※ 本論文の lookbehind は、起動位置 <span class="m">p</span> を<b>含めて</b>左へ読む向き付き規約<br>
+      (§3.4)。上の「4 で終わる文字列 = w[3]w[4]」はその規約です。</div>
+    </div>
+  </div>
+  <div class="pager">9 / 21</div>
+</section>
+
+<!-- 4 : automaton -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">④ stratified negation — 自動機</div>
+  <h2 style="margin-top:14px">stratified 2BFA へ (Lemma 1.1: <span class="m">O(|E|)</span> サイズ・時間)</h2>
+  <div class="sub">assertion の入れ子が、そのまま world の順序 <span class="m">Q₂ ≻ Q₁ ≻ Q₀</span> になる。<span class="fl">否定辺だけが世界を厳密に下げる。</span></div>
+  <svg viewBox="0 0 856 372" style="width:100%;max-height:462px;margin:auto 0">
+    <rect class="band" x="8" y="6" width="840" height="104" rx="3"/>
+    <rect class="band" x="8" y="120" width="840" height="104" rx="3"/>
+    <rect class="band" x="8" y="234" width="840" height="130" rx="3"/>
+    <text class="bl" x="18" y="26">Q₂</text><text class="bl" x="18" y="140">Q₁</text><text class="bl" x="18" y="254">Q₀</text>
+
+    <!-- Q2 -->
+    <path class="init" d="M26 57 H 66" marker-end="url(#ar)"/>
+    <rect class="st" x="72" y="42" width="68" height="30" rx="5"/><text class="stl" x="106" y="57">q_in</text>
+    <text class="gate" x="160" y="57">∧</text>
+    <path class="ln" d="M182 57 H 250" marker-end="url(#ar)"/>
+    <rect class="st" x="250" y="42" width="64" height="30" rx="5"/><text class="stl" x="282" y="57">q_Σ</text>
+    <path class="ln" d="M314 57 H 400" marker-end="url(#ar)"/><text class="el" x="357" y="49">σ, →</text>
+    <circle class="st" cx="416" cy="57" r="13"/><circle class="st" cx="416" cy="57" r="9"/>
+    <text class="el" x="416" y="88">ok</text>
+    <path class="neg" d="M106 76 V 132" marker-end="url(#arn)"/>
+    <text class="el" x="152" y="106" style="fill:var(--fail)">¬ (下位の完了失敗)</text>
+
+    <!-- Q1 -->
+    <rect class="st" x="72" y="156" width="68" height="30" rx="5"/><text class="stl" x="106" y="171">q_a</text>
+    <path class="ln" d="M140 171 H 228" marker-end="url(#ar)"/><text class="el" x="184" y="163">a, →</text>
+    <text class="gate" x="246" y="171">∧</text>
+    <path class="neg" d="M240 186 C 220 214, 180 220, 150 246" marker-end="url(#arn)"/>
+    <text class="el" x="150" y="216" style="fill:var(--fail)">¬</text>
+    <path class="ln" d="M258 186 C 340 216, 430 228, 492 250" marker-end="url(#ar)"/>
+
+    <!-- Q0 : ab probe -->
+    <rect class="st" x="96" y="256" width="76" height="30" rx="5"/><text class="stl" x="134" y="271">q⁰_ab</text>
+    <path class="ln" d="M172 271 H 250" marker-end="url(#ar)"/><text class="el" x="211" y="263">b, ←</text>
+    <rect class="st" x="250" y="256" width="76" height="30" rx="5"/><text class="stl" x="288" y="271">q¹_ab</text>
+    <path class="ln" d="M326 271 H 400" marker-end="url(#ar)"/><text class="el" x="363" y="263">a, ←</text>
+    <circle class="st" cx="416" cy="271" r="13"/><circle class="st" cx="416" cy="271" r="9"/>
+    <text class="el" x="416" y="302">ok</text>
+    <text class="el" x="214" y="330">「ab で終わるか」を右端から逆走</text>
+
+    <!-- Q0 : b<span class="u">∪</span>c probe -->
+    <rect class="st" x="492" y="256" width="84" height="30" rx="5"/><text class="stl" x="534" y="271">q_{b<tspan font-family="Noto Sans CJK JP, Hiragino Kaku Gothic ProN, sans-serif" font-size="14">∪</tspan>c}</text>
+    <text class="gate" x="600" y="271">∨</text>
+    <path class="ln" d="M620 262 C 650 250, 660 248, 686 248" marker-end="url(#ar)"/>
+    <path class="ln" d="M620 280 C 650 292, 660 296, 686 296" marker-end="url(#ar)"/>
+    <rect class="st" x="686" y="233" width="52" height="30" rx="5"/><text class="stl" x="712" y="248">q_b</text>
+    <rect class="st" x="686" y="281" width="52" height="30" rx="5"/><text class="stl" x="712" y="296">q_c</text>
+    <path class="ln" d="M738 248 H 800" marker-end="url(#ar)"/><text class="el" x="769" y="238">b, →</text>
+    <path class="ln" d="M738 296 H 800" marker-end="url(#ar)"/><text class="el" x="769" y="286">c, →</text>
+    <circle class="st" cx="818" cy="248" r="12"/><circle class="st" cx="818" cy="248" r="8"/>
+    <circle class="st" cx="818" cy="296" r="12"/><circle class="st" cx="818" cy="296" r="8"/>
+  </svg>
+  <div class="small" style="margin-top:6px"><span class="m">∧ / ∨</span> は<b>同一 world 内</b>の Boolean 制御。world をまたぐのは assertion の呼び出しだけ。<span class="m">rank β: Q → ℕ</span> で、通常の辺は非増加、<span class="fl">否定辺は厳密減少</span>。</div>
+  <div class="pager">10 / 21</div>
+</section>
+
+<!-- 6 : horn clauses -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">④ stratified negation — Horn 節</div>
+  <h2 style="margin-top:14px">③ の節に、リテラルが一種類だけ増える</h2>
+  <div class="sub"><span class="m">q(i)</span> = 「状態 q を位置 i から始めると成功する」。∧ ノードは 1 本の節、∨ ノードは枝ごとに 1 本。</div>
+  <div class="cols">
+    <div style="flex:1.15">
+      <div class="box" style="border-left:3px solid var(--world)">
+        <div class="cap">世界 Q₀ (最下位)</div>
+        <div class="clauses">
+          q⁰_ab(j) ← j&gt;1, w[j]=b, q¹_ab(j−1)<br>
+          q¹_ab(j) ← w[j]=a<br>
+          q_{b<span class="u">∪</span>c}(j) ← w[j]=b<br>
+          q_{b<span class="u">∪</span>c}(j) ← w[j]=c
+        </div>
+      </div>
+      <div class="box" style="border-left:3px solid var(--world)">
+        <div class="cap">世界 Q₁</div>
+        <div class="clauses">q_a(i) ← w[i]=a, <span class="fl">q⁰_ab(i+1) ⇑</span>, q_{b<span class="u">∪</span>c}(i+1)</div>
+      </div>
+      <div class="box" style="border-left:3px solid var(--world)">
+        <div class="cap">世界 Q₂</div>
+        <div class="clauses">q_Σ(i) ← w[i] ∈ Σ<br>
+          q_in(i) ← <span class="fl">q_a(i) ⇑</span>, q_Σ(i)</div>
+      </div>
+    </div>
+    <div>
+      <div class="box k">
+        <div class="cap">唯一の非標準リテラル</div>
+        <p style="font-size:17px"><span class="m fl">q(i) ⇑</span></p>
+        <p class="small" style="margin-top:8px">「<span class="m">q(i)</span> の計算が<b>失敗として完了した</b>」。<br><br>
+        普通の否定ではない。下位 world の表がまだ開いている間は、<b>証明が無いことは「未知」でしかない</b>。表が飽和して<b>閉じた</b>瞬間に初めて読める。</p>
+      </div>
+      <div class="box g">
+        <div class="cap">ここまでの計算量</div>
+        <div class="small">セル数 <span class="m">O(|E|·n)</span>、ground な premise 出現数も <span class="m">O(|E|·n)</span>。<br>
+        各々を <span class="m">O(1)</span> 回しか触らない → <b>Dowling–Gallier / LTUR</b> の標準ワークリストで <span class="m">O(|E|·|w|)</span>。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">11 / 21</div>
+</section>
+
+<!-- 7 : interactive propagation (demo 4) -->
+<section class="slide" data-part="1" data-demo="d4">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">④ stratified negation — 伝播の実演</div>
+  <h2 style="margin-top:14px">w = abac 上での、下から上への評価</h2>
+  <div class="sub"><span class="m">U</span> 未知 / <span class="m ok">T</span> 成功 / <span class="m fl">F</span> 完了した失敗。&nbsp; <b>規則の発火と閉包は別物</b>で、閉包だけが <span class="m fl">⇑</span> を生む。</div>
+  <div class="cols">
+    <div style="flex:.85"><div id="d4-tbl"></div></div>
+    <div style="flex:1.15;display:flex;flex-direction:column">
+      <div class="box" id="d4-cap" style="min-height:160px"></div>
+      <div class="dctl noprint" style="margin-top:auto">
+        <button class="btn" data-demo="d4" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d4" data-dir="1">次へ</button>
+        <span class="tiny" id="d4-cnt"></span>
+        <span class="tiny" style="margin-left:10px">← → キーでも動きます</span>
+      </div>
+    </div>
+  </div>
+  <div class="pager">12 / 21</div>
+</section>
+
+<!-- 5 : state intuition -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">四段のまとめ — 状態の直感</div>
+  <h2 style="margin-top:14px">「そこから受理に入れるか」— 形はそれで正しい。三つだけ補正が要る</h2>
+  <div class="box g" style="margin:6px 0 12px">
+    <div class="cap">論文の定義 (§3.3) — ①〜④ を通じて一度も変わらなかったもの</div>
+    <p style="font-size:18px"><span class="m">q@i ⇓</span> &nbsp;⟺&nbsp; 配置 <span class="m">(q, i)</span> が<b>有限の受理計算</b>をもつ。<br>
+    <span class="small">acceptance relation は、対応する Horn プログラムの<b>最小不動点そのもの</b>。</span></p>
+  </div>
+  <div class="cols">
+    <div>
+      <ul>
+        <li class="minus"><b>run ではなく run tree。</b> <span class="m">∧</span> があるので「一本の道」ではない。<span class="m">∨</span>・遷移は ∃(一本)、<span class="m">∧</span> は ∀(両方)、<span class="m">⊤</span> が葉。<span class="wd">→ ③ の <span class="m">m@2</span> で見たところ。</span></li>
+        <li class="minus"><b>有限性が効く (lfp であって gfp ではない)。</b> two-way なのでヘッドが往復して無限に続く「run」が作れるが、それは<span class="fl">失敗</span>。<span class="wd">→ ②b の <span class="m">p@1 ⇄ q@2</span> がまさにこれ。</span></li>
+        <li class="minus"><b>否定辺の先は「まだ証明が無い」ではない。</b> <span class="m">q → ¬r</span> が読むのは <span class="m fl">□(r@i = fail)</span>、つまり<b>下位 world の lfp が確定した後</b>の failure。<span class="wd">→ ④ の閉包 (3) と (5)、そして Δ2 の world 一つずつ。</span></li>
+      </ul>
+    </div>
+    <div>
+      <div class="box k">
+        <div class="cap">言い換えるなら</div>
+        <p style="font-size:16.5px"><span class="m">q@i ⇓</span> = 「<span class="m">(q,i)</span> から<b>有限の受理 run tree</b> が存在する」<br>
+        <span class="small" style="display:block;margin-top:6px">— 下位 stratum の否定は既に確定した oracle として読んでよい、という条件つきで。</span></p>
+      </div>
+      <div class="box w">
+        <div class="cap">ここが後で効く</div>
+        <div class="small">この後 FHCM に上げると、直感は <b>∃(どれかの run)</b> から<br>
+        <b>優先順位で選ばれた唯一の run</b> に変わります (Δ1)。<br>
+        聞き手はここで直感を持ち越しがちなので、明示的に切り替えを宣言するとよい。</div>
+      </div>
+      <div class="tiny" style="margin-top:10px">用語: 論文は Chandra–Kozen–Stockmeyer の "Boolean automata" に従って <b>2BFA</b> と呼んでいます (= alternating two-way)。正則性は Ladner–Lipton–Stockmeyer。</div>
+    </div>
+  </div>
+  <div class="pager">13 / 21</div>
+</section>
+
+<!-- 8 : what is known -->
+<section class="slide" data-part="1">
+  <div class="rail"><i></i><i class="act"></i><i></i><span>助走</span></div>
+  <div class="tag">助走のまとめ</div>
+  <h2 style="margin-top:18px">ここまでは、TCS の人には「既知の部品の組み合わせ」に見える</h2>
+  <div class="sub">それでよい。ここは<b>共通の土台を敷く</b>ための助走で、論文の主張ではない。</div>
+  <div class="cols">
+    <div>
+      <div class="box">
+        <div class="cap">使っている既知の道具</div>
+        <ul style="margin-top:4px">
+          <li>alternating two-way automata (Chandra–Kozen–Stockmeyer)</li>
+          <li>stratified negation (Apt–Blair–Walker)</li>
+          <li>命題 Horn の線形時間充足 (Dowling–Gallier, Minoux)</li>
+          <li>monadic Datalog / Datalog LITE の navigational evaluation (Gottlob–Koch)</li>
+        </ul>
+      </div>
+      <div class="small">実際、語をパスとみなせば 2BFA の状態は位置上の<b>単項述語</b>、遷移は局所ナビゲーション規則になり、Boolean lookaround はこの枠にきれいに収まる。</div>
+    </div>
+    <div>
+      <div class="box g">
+        <div class="cap">ただし、ひとつ副産物がある</div>
+        <p style="font-size:17px"><b>Corollary 1.2.</b> <span class="m">Regex<sub>Lk</sub></span> の言語クラスは<b>正則</b>。</p>
+        <div class="small" style="margin-top:8px">2BFA への線形サイズ翻訳 + 2BFA の正則性定理から即座に出る。<br>
+        既存の <span class="m">Regex<sub>Lk</sub></span> のアルゴリズム的研究からは、この形では導かれていなかった。</div>
+      </div>
+      <div class="box k">
+        <div class="cap">聞き手がここで必ず思うこと</div>
+        <p class="small">「stratified Datalog の線形評価でしょう。<b>論文はどこ?</b>」<br><br>
+        → 答えは次の三枚。<b>Boolean を捨てた瞬間に、この絵は三箇所で壊れる。</b></p>
+      </div>
+    </div>
+  </div>
+  <div class="pager">14 / 21</div>
+</section>
+
+<!-- 9 : delta 1 -->
+<section class="slide" data-part="2">
+  <div class="rail"><i></i><i></i><i class="act"></i><span>本題</span></div>
+  <div class="tag">Δ1 — 真偽値から終点値へ</div>
+  <h2 style="margin-top:16px">セルが「成功したか」ではなく「どこで終わったか」を持つ</h2>
+  <div class="sub">JavaScript の matcher も PEG も、返すのは真偽値ではなく<b>優先順位で選ばれた一つの終点</b>。</div>
+  <div class="cols">
+    <div>
+      <div class="box">
+        <div class="cap">セルの値域</div>
+        <div class="clauses" style="font-size:16px">Cell(I) = {unknown} + {fail} + {ok(j) | j ∈ I}</div>
+        <div class="small" style="margin-top:10px">情報の増加は <span class="m">unknown → (fail または ok(j))</span> の一段だけ。<br>
+        相異なる最終値の間に順序は無い (flat domain)。</div>
+      </div>
+      <div class="box g">
+        <div class="cap">functional であること</div>
+        <div class="clauses" style="font-size:15px">R@i ⇓ j &nbsp;∧&nbsp; R@i ⇓ j′ &nbsp;⟹&nbsp; j = j′</div>
+        <div class="small" style="margin-top:10px">packrat parsing の「memo 1 エントリにつき結果 1 つ」そのもの。<br>
+        Boolean 行はこの特殊ケース: <span class="m">q@i</span> は <span class="m">q@i ⇓ i</span> の略記 (対角)。</div>
+      </div>
+    </div>
+    <div>
+      <div class="cap">PEG の 2 規則が、そのまま FHCM の規則になる</div>
+      <div class="ruleset" style="margin-top:10px">
+        <div class="rule"><div class="prem">P@i ⇓ j &nbsp;&nbsp; Q@j ⇓ k</div><div class="bar"></div><div class="concl">(P Q)@i ⇓ k</div><div class="nm">Seq</div></div>
+        <div class="rule"><div class="prem">P@i ⇓ j</div><div class="bar"></div><div class="concl">(P/Q)@i ⇓ j</div><div class="nm">Left</div></div>
+        <div class="rule"><div class="prem"><span class="fl">P@i ⇑</span> &nbsp;&nbsp; Q@i ⇓ j</div><div class="bar"></div><div class="concl">(P/Q)@i ⇓ k</div><div class="nm">Right</div></div>
+      </div>
+      <div class="box k" style="margin-top:16px">
+        <div class="cap">対称性が壊れている</div>
+        <p class="small"><b>肯定の事実 <span class="m">R@i ⇓ j</span> は導出された瞬間に使える。</b><br>
+        <b>失敗 <span class="m fl">R@i ⇑</span> は <span class="m">□(R@i = fail)</span> の略記で、閉じた世界からしか読めない。</b><br><br>
+        ordered choice の右枝は「左枝がまだ成功していない」では発火できない。<br>「左枝が<b>もう成功しないと確定した</b>」でなければならない。</p>
+      </div>
+    </div>
+  </div>
+  <div class="pager">15 / 21</div>
+</section>
+
+<!-- 10a : delta 2, the contradiction -->
+<section class="slide" data-part="2">
+  <div class="rail"><i></i><i></i><i class="act"></i><span>本題</span></div>
+  <div class="tag">Δ2 — completion world をセル単位で切る</div>
+  <h2 style="margin-top:14px">最小の反例: <span class="m">P ← Q / a,&nbsp; Q ← a P</span></h2>
+  <div class="sub">右再帰で <span class="m">a</span> の連続を最長一致する PEG。<span class="m">A</span> は文字 <span class="m">a</span> の行。</div>
+  <div class="cols">
+    <div style="flex:1.05">
+      <div class="ruleset">
+        <div class="rule"><div class="prem">A@i ⇓ i+1 &nbsp; P@(i+1) ⇓ j</div><div class="bar"></div><div class="concl">Q@i ⇓ j</div><div class="nm">ρ_rec</div></div>
+        <div class="rule"><div class="prem">Q@i ⇓ j</div><div class="bar"></div><div class="concl">P@i ⇓ j</div><div class="nm">ρ_Qok</div></div>
+        <div class="rule"><div class="prem"><span class="fl">Q@i ⇑</span> &nbsp; A@i ⇓ i+1</div><div class="bar"></div><div class="concl">P@i ⇓ i+1</div><div class="nm">ρ_fb</div></div>
+      </div>
+      <div class="box k" style="margin-top:14px">
+        <div class="cap">要求される順序</div>
+        <div class="clauses" style="font-size:15.5px">
+          ρ_rec: &nbsp;β(P@(i+1)) ⪯ β(Q@i)<br>
+          ρ_fb: &nbsp;&nbsp;β(Q@i) <span class="fl">≺</span> β(P@i)
+        </div>
+        <div class="tiny" style="margin-top:6px">⪯ = 同じ world でもよい正の流れ &nbsp;/&nbsp; <span class="fl">≺ = 厳密に下位。閉じた後でしか読めない</span></div>
+        <p style="font-size:18px;margin-top:12px;font-family:var(--mono)">⟹ &nbsp;P@(i+1) &nbsp;⪯&nbsp; Q@i &nbsp;<span class="fl">≺</span>&nbsp; P@i</p>
+      </div>
+    </div>
+    <div>
+      <div class="box" style="border-left:3px solid var(--fail);margin-top:0">
+        <div class="cap">述語(行)レベルの stratification では不可能</div>
+        <div class="clauses" style="font-size:15px">β(P) ⪯ β(Q) <span class="fl">≺</span> β(P) &nbsp;&nbsp;— 矛盾</div>
+        <div class="small" style="margin-top:8px">同じ行 <span class="m">P</span> の二つのセルが<b>別々の world に属さねばならない</b>。<br>
+        古典的な stratified Datalog は<b>述語に</b> stratum を振るので、ここで力尽きる。</div>
+      </div>
+      <div class="box g">
+        <div class="cap">使う完了 frame (辞書式)</div>
+        <div class="clauses" style="font-size:14px">β(A@i) = β(Q@i) = (n+1−i, 0)<br>β(P@i) = (n+1−i, 1)</div>
+        <div class="small" style="margin-top:8px">第 1 座標がカーソル位置（右から左へ減る）、第 2 座標が同一カーソル内の順序。<br>
+        これで 3 本の規則すべての要求が同時に満たされる。</div>
+      </div>
+      <div class="box w">
+        <div class="cap">次の一枚でやること</div>
+        <div class="small"><span class="m">w = aab</span> 上で、この frame が定める順序どおりに <b>world を一つずつ閉じていく</b>様子を実際に動かします。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">16 / 21</div>
+</section>
+
+<!-- 10b : delta 2, the run -->
+<section class="slide" data-part="2" data-demo="d5">
+  <div class="rail"><i></i><i></i><i class="act"></i><span>本題</span></div>
+  <div class="tag">Δ2 — world を一つずつ閉じる</div>
+  <h2 style="margin-top:14px"><span class="m">w = aab</span>: 輪が斜めに降りてくる</h2>
+  <div class="sub">セルは <span class="m">U</span> / <span class="m fl">F</span> / <b>選ばれた終点の番号</b>。輪で囲まれたセルが、そのステップで閉じる world です。</div>
+  <div class="cols">
+    <div style="flex:.8">
+      <div id="d5-tbl"></div>
+      <div class="box g" style="margin-top:16px">
+        <div class="cap">④ の表との違い</div>
+        <div class="small">④ では world が<b>行の帯</b>でした (Q₂ / Q₁ / Q₀)。<br>
+        ここでは world が<b>斜めに走る</b>。行 <span class="m">P</span> は 4 つの world に分かれています。<br>
+        <b>これが「述語ではなくセルに stratum を振る」ということ。</b></div>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column">
+      <div class="box" id="d5-cap" style="min-height:150px"></div>
+      <div class="dctl noprint" style="margin-top:14px">
+        <button class="btn" data-demo="d5" data-dir="-1">戻る</button>
+        <button class="btn" data-demo="d5" data-dir="1">次へ</button>
+        <span class="tiny" id="d5-cnt"></span>
+      </div>
+      <div class="box k" style="margin-top:16px">
+        <div class="cap">聞き手に効く一言</div>
+        <div class="small">「<b>この表を行の帯に分割することはできない</b>」— そう言った時点で、古典的 stratified Datalog との差がついています。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">17 / 21</div>
+</section>
+
+<!-- 11 : delta 3a -->
+<section class="slide" data-part="2">
+  <div class="rail"><i></i><i></i><i class="act"></i><span>本題</span></div>
+  <div class="tag">Δ3 — なぜ線形が自明でないか</div>
+  <h2 style="margin-top:14px">「どの source で premise を引くか」を、規則ごとに DAG で縛る</h2>
+  <div class="sub">Horn の ground 化は一般に <span class="m">|P|·n<sup>arity</sup></span> に膨れる。product-linear が欲しいなら、規則の中で source をどう手に入れるかを制限するしかない。</div>
+  <div class="cols">
+    <div style="flex:1.12">
+      <div class="cap" style="margin-bottom:2px">許される source の作り方 — ちょうど 2 つ</div>
+      <svg viewBox="0 0 520 300" style="width:100%;max-height:400px">
+        <g font-family="ui-monospace, DejaVu Sans Mono, monospace" fill="#16202B">
+          <!-- rule 1 -->
+          <text x="0" y="16" font-size="12.5" font-family="inherit" fill="#3E4B59">1. 既知 source からの固定の局所移動</text>
+          <text x="6" y="44" font-size="12">w[i]=a</text>
+          <text x="86" y="44" font-size="12" fill="#8E2E6B">q⁰_ab@(i+1) ⇑</text>
+          <text x="236" y="44" font-size="12">q_{b<tspan font-family="Noto Sans CJK JP, Hiragino Kaku Gothic ProN, sans-serif" font-size="13">∪</tspan>c}@(i+1) ⇓</text>
+          <line x1="0" y1="54" x2="380" y2="54" stroke="#16202B" stroke-width="1"/>
+          <text x="190" y="72" font-size="12" text-anchor="middle">q_a@i ⇓</text>
+
+          <circle cx="30" cy="112" r="13" fill="#fff" stroke="#B1442E" stroke-width="1.4"/>
+          <text x="30" y="112" font-size="11" text-anchor="middle" dominant-baseline="central" fill="#B1442E">★</text>
+          <text x="0" y="152" font-size="10.5" fill="#6B7885">★ = head の source i</text>
+          <path class="dot" d="M46 104 C 76 92, 90 92, 112 92" marker-end="url(#ad)"/>
+          <path class="dot" d="M46 112 C 90 112, 100 112, 112 112" marker-end="url(#ad)"/>
+          <path class="dot" d="M46 120 C 76 132, 90 132, 112 132" marker-end="url(#ad)"/>
+          <rect x="114" y="80" width="118" height="23" rx="3" fill="#fff" stroke="#C6D0DA"/>
+          <text x="122" y="92" font-size="11" dominant-baseline="central">guard w[i]=a</text>
+          <rect x="114" y="100" width="176" height="23" rx="3" fill="#FBECF4" stroke="#8E2E6B"/>
+          <text x="122" y="112" font-size="11" dominant-baseline="central" fill="#8E2E6B">q⁰_ab@(i+1) ⇑ &nbsp;(終端)</text>
+          <rect x="114" y="120" width="150" height="23" rx="3" fill="#fff" stroke="#C6D0DA"/>
+          <text x="122" y="132" font-size="11" dominant-baseline="central">q_{b<tspan font-family="Noto Sans CJK JP, Hiragino Kaku Gothic ProN, sans-serif" font-size="12">∪</tspan>c}@(i+1) ⇓</text>
+          <text x="306" y="116" font-size="10.5" fill="#6B7885" font-family="inherit">i±1 で全部決まる</text>
+
+          <line x1="0" y1="168" x2="500" y2="168" stroke="#DDE3EA"/>
+
+          <!-- rule 2 -->
+          <text x="0" y="192" font-size="12.5" font-family="inherit" fill="#3E4B59">2. 先行 premise が選んだ終点をたどる (pointer chasing)</text>
+          <text x="52" y="220" font-size="12">P@i ⇓ j</text>
+          <text x="162" y="220" font-size="12">Q@j ⇓ k</text>
+          <line x1="40" y1="230" x2="252" y2="230" stroke="#16202B" stroke-width="1"/>
+          <text x="146" y="248" font-size="12" text-anchor="middle">(P Q)@i ⇓ k</text>
+
+          <circle cx="30" cy="282" r="13" fill="#fff" stroke="#B1442E" stroke-width="1.4"/>
+          <text x="30" y="282" font-size="11" text-anchor="middle" dominant-baseline="central" fill="#B1442E">★</text>
+          <path class="dot" d="M46 282 H 96" marker-end="url(#ad)"/>
+          <rect x="98" y="270" width="90" height="23" rx="3" fill="#fff" stroke="#C6D0DA"/>
+          <text x="106" y="282" font-size="11" dominant-baseline="central">P@i ⇓ j</text>
+          <path class="dot" d="M190 282 H 236" marker-end="url(#ad)"/>
+          <text x="212" y="274" font-size="10.5" text-anchor="middle" fill="#B1442E">j</text>
+          <rect x="238" y="270" width="94" height="23" rx="3" fill="#fff" stroke="#C6D0DA"/>
+          <text x="246" y="282" font-size="11" dominant-baseline="central">Q@j ⇓ k</text>
+          <path class="dot" d="M334 282 H 378" marker-end="url(#ad)"/>
+          <text x="356" y="274" font-size="10.5" text-anchor="middle" fill="#B1442E">k</text>
+          <text x="384" y="282" font-size="11" dominant-baseline="central" fill="#6B7885">head の終点</text>
+        </g>
+      </svg>
+    </div>
+    <div>
+      <div class="box k" style="margin-top:0">
+        <div class="cap">禁止される唯一の操作</div>
+        <p style="font-size:16.5px"><b>逆引き (inverse lookup)</b></p>
+        <div class="small" style="margin-top:5px">head の source からも、先行する終点からも決まらない source を、独立に<b>探しに行く</b>こと。</div>
+      </div>
+      <div class="box g">
+        <div class="cap">形式化</div>
+        <div class="small">規則 <span class="m">ρ</span> の premise をノード、「変数の束縛元 → 使用箇所」を辺とするグラフ <span class="m">D_ρ</span> が<b>非循環</b>であること、それだけ。<br>
+        完了失敗 premise <span class="m fl">d ⇑</span> は<b>終端ノード</b>で、新しい source を生まない。</div>
+      </div>
+      <div class="box w">
+        <div class="cap">Theorem 5.2 (主定理)</div>
+        <p style="font-size:15.5px"><b>well-framed + functional + source-flow DAG</b><br>
+        ⟹ <span class="m">O(|Cells(P)| + |I|·‖D(P)‖) = O(|P|·|I|)</span></p>
+        <div class="small" style="margin-top:6px">伝播そのものは古典的ワークリストのまま。DAG は<b>いつ premise を登録するか</b>だけを制御する。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">18 / 21</div>
+</section>
+
+<!-- 12 : lower bound -->
+<section class="slide" data-part="2">
+  <div class="rail"><i></i><i></i><i class="act"></i><span>本題</span></div>
+  <div class="tag">Δ3 — 制限が必要であることの証拠</div>
+  <h2 style="margin-top:16px">source-flow 条件を外すと、規則の中に dense join が隠せる</h2>
+  <div class="sub">functionality だけでは足りない、という一番分かりやすい説明。</div>
+  <div class="cols">
+    <div style="flex:1.1">
+      <div class="box">
+        <div class="cap">固定の 1 規則 (positive, one-world, row-functional)</div>
+        <div class="clauses" style="font-size:13.5px;white-space:normal;line-height:1.9">
+          adj@p<sub>ab</sub> ⇓ p<sub>ab</sub>, &nbsp; src@p<sub>ab</sub> ⇓ x<sub>a</sub>, &nbsp; dst@p<sub>ab</sub> ⇓ x<sub>b</sub> &nbsp;&nbsp;(1 ≤ a &lt; b ≤ 6)<br>
+          <span style="display:block;border-top:1px solid var(--ink);margin:4px 0"></span>
+          Clique₆@★ ⇓ ★
+        </div>
+      </div>
+      <ul style="margin-top:12px">
+        <li>根の source <span class="m">★</span> は、15 個のオフセット <span class="m">p<sub>ab</sub></span> を<b>一つも決めない</b>。</li>
+        <li>先行 premise の選んだ終点も、どれ一つ供給しない。</li>
+        <li>つまり 15 個を<b>共有頂点制約の下で同時に</b>見つけるしかない — これが dense join。</li>
+      </ul>
+      <div class="box k" style="margin-top:10px">
+        <div class="cap">Theorem 5.3</div>
+        <p style="font-size:15.5px"><span class="m">k</span>-Clique 仮説 (<span class="m">k=6</span>) の下で、この固定スキーマに対する <span class="m">O(|w|)</span> 時間の判定アルゴリズムは存在しない。<br>
+        ⟹ source-flow 条件なしでは、<b>一様な</b> <span class="m">O(|P|·|w|)</span> 評価器は存在しない。</p>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center">
+      <svg viewBox="0 0 260 250" style="width:88%">
+        <g>
+          <circle cx="130" cy="30" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <circle cx="217" cy="85" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <circle cx="200" cy="185" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <circle cx="130" cy="230" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <circle cx="60" cy="185" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <circle cx="43" cy="85" r="9" fill="#fff" stroke="#16202B" stroke-width="1.4"/>
+          <g stroke="#2F5D8C" stroke-width="1" opacity=".75" fill="none">
+            <path d="M130 30 L217 85 M130 30 L200 185 M130 30 L130 230 M130 30 L60 185 M130 30 L43 85"/>
+            <path d="M217 85 L200 185 M217 85 L130 230 M217 85 L60 185 M217 85 L43 85"/>
+            <path d="M200 185 L130 230 M200 185 L60 185 M200 185 L43 85"/>
+            <path d="M130 230 L60 185 M130 230 L43 85"/>
+            <path d="M60 185 L43 85"/>
+          </g>
+        </g>
+      </svg>
+      <div class="tiny" style="text-align:center;margin-top:8px">規則そのものが <span class="m">K₆</span>。<br>15 本の辺 = 15 個の未束縛 source。</div>
+      <div class="box" style="margin-top:14px;border-left:3px solid var(--world)">
+        <div class="cap">もう一つの境界線</div>
+        <div class="small">PEG の lookbehind を「起動位置に新しい右端マーカを置いた prefix 上で走らせる」<b>sandbox 意味論</b>にすると、OVH の下で一様 product-linear は消える (Thm 3.2)。<br>
+        論文が<b>向き付き・元テープ</b>の規約を採る理由。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">19 / 21</div>
+</section>
+
+<!-- 13 : payoff -->
+<section class="slide" data-part="3">
+  <div class="rail"><i class="act"></i><i class="act"></i><i class="act"></i><span>成果</span></div>
+  <div class="tag">何が言えるようになったか</div>
+  <h2 style="margin-top:16px">同じ定理から、三つの別々の結果が落ちる</h2>
+  <div class="sub">各対象について <b>well-framed / functional / source-flow DAG</b> の 3 証明書を与えるだけ。</div>
+  <div style="display:flex;gap:16px;margin-top:6px">
+    <div class="box g" style="flex:1">
+      <div class="cap">JavaScript 系 matching</div>
+      <p style="font-size:15.5px"><b>JSCore + atomic group + capture</b><br>を同時に扱える初めての結果 (Thm 1.5)。</p>
+      <div class="small" style="margin-top:8px">Barrière–Pit-Claudel は atomic group なし。<br>Fujinami–Hasuo は positive lookaround 内 / atomic group 内の capture が取れない。<br>
+      <b>完了表から capture 環境も <span class="m">O(|E|·|w|)</span> で復元できる。</b></div>
+    </div>
+    <div class="box g" style="flex:1">
+      <div class="cap">PEG</div>
+      <p style="font-size:15.5px"><b>first-class な lookbehind</b> を持つ well-formed PEG。</p>
+      <div class="small" style="margin-top:8px">通常の lookahead に加えて、現在位置から<b>左向きに</b>部分文法を試せる。ordered choice の終点選択はそのまま。<br>
+      well-formedness は 2 条件: SwitchStratified (向き反転による進捗の打ち消しを禁止) と NullLoopFree。</div>
+    </div>
+    <div class="box g" style="flex:1">
+      <div class="cap">2DPDA</div>
+      <p style="font-size:15.5px">Cook–Jones の線形時間シミュレーションを<b>一様化</b>。</p>
+      <div class="small" style="margin-top:8px">古典的結果は「機械 M を固定するごとに <span class="m">O(|w|)</span>」で、M 依存は定数に吸収されていた。<br>
+      本構成は疎記述サイズ <span class="m">‖M‖<sub>sp</sub></span> を明示して <span class="m">O(‖M‖<sub>sp</sub>·|w|)</span>。<b>この形の上界は初めて。</b></div>
+    </div>
+  </div>
+  <div class="box w" style="margin-top:18px">
+    <div class="cap">一行でいうと</div>
+    <p style="font-size:18px">「surface configuration が<b>唯一の終点を選ぶ</b>」という点で、2DPDA の terminator も、PEG の ordered choice も、JS regex の優先順位も<b>同じ計算</b>をしている。</p>
+  </div>
+  <div class="pager">20 / 21</div>
+</section>
+
+<!-- 14 : Q&A -->
+<section class="slide" data-part="3">
+  <div class="rail"><i class="act"></i><i class="act"></i><i class="act"></i><span>成果</span></div>
+  <div class="tag">想定質問</div>
+  <h2 style="margin-top:14px">TCS の人がほぼ確実に聞いてくること</h2>
+  <div class="cols" style="margin-top:12px">
+    <div>
+      <div class="box">
+        <div class="cap">Q. 結局 stratified Datalog の線形評価では?</div>
+        <div class="small">Boolean 部分はその通り。違いは 2 点。(i) stratum が<b>述語ではなく ground セル</b>に付く (スライド 10)。(ii) 線形性は ground 化のサイズから自動では出ず、<b>規則局所の source-flow 条件</b>が要る。しかもそれは <span class="m">k</span>-Clique の下で外せない。</div>
+      </div>
+      <div class="box">
+        <div class="cap">Q. well-founded semantics や stable model との関係は?</div>
+        <div class="small">完了様相 <span class="m fl">□</span> は「negation as failure」を一般化したものではなく、<b>世界の閉包を明示的に構文に持ち上げた</b>もの。循環する完了失敗依存は frame が存在しないという形で単純に排除される (Ex. 4.4)。</div>
+      </div>
+      <div class="box">
+        <div class="cap">Q. 下界は条件付きでしょう</div>
+        <div class="small">そう。<span class="m">k</span>-Clique と OVH。主張は「これ以下は無理」ではなく、<b>「この 2 つの制限のどちらを外しても、一様 product-linear は既知の仮説と衝突する」</b>という<b>設計の必然性</b>の主張。</div>
+      </div>
+    </div>
+    <div>
+      <div class="box">
+        <div class="cap">Q. functionality はどこで効く?</div>
+        <div class="small">2 箇所。(i) セルが 1 つの終点しか持たないので memo 表が定数サイズ。(ii) その終点が<b>次の premise の source になれる</b> (pointer chasing)。関係のままだと (ii) が分岐して線形性が壊れる。</div>
+      </div>
+      <div class="box">
+        <div class="cap">Q. 定数はどうなっている?</div>
+        <div class="small"><span class="m">O(|Cells(P)| + |I|·‖D(P)‖)</span>。<span class="m">‖D(P)‖</span> は source-flow 注釈込みの規則サイズ和で <span class="m">O(|P|)</span>。activation・DAG ノード・DAG 辺のそれぞれに定数仕事。</div>
+      </div>
+      <div class="box">
+        <div class="cap">Q. 木や部分順序には上がる?</div>
+        <div class="small">論文では形式化していないが、Core XPath がちょうど対応物 (軸 = 局所移動、入れ子述語 = 決まったノードでの Boolean テスト、<span class="m">O(|Q|·|T|)</span>)。ただし任意の二項パス関係の実体化は避ける必要がある。</div>
+      </div>
+      <div class="box" style="border-left:3px solid var(--ok)">
+        <div class="cap">説明の順序として</div>
+        <div class="small">スライド 3–13 の梯子に 15 分、14 で一度「ここまでは既知」と明言、15–19 に 15 分。<b>14 を飛ばさないこと</b>と、<b>②b と 17 を必ず動かすこと</b>。</div>
+      </div>
+    </div>
+  </div>
+  <div class="pager">21 / 21</div>
+</section>
+
+</div>
+
+<script>
+(function(){
+  var stage = document.getElementById('stage');
+  function fit(){ stage.style.transform = 'scale(' + Math.min(window.innerWidth/1280, window.innerHeight/720)*0.955 + ')'; }
+  window.addEventListener('resize', fit); fit();
+
+  var U='U', T='T', F='F';
+  function g(){ return [].slice.call(arguments); }
+
+  /* ============ machine data ============ */
+  var CFG = {};
+
+  /* (1) one-way NFA : a*b then end.  w = a a b ⊣ */
+  CFG.d1 = {
+    id:'d1', small:true, word:['a','a','b','⊣'], rows:['q0','q1'],
+    S:[
+      [g(U,U,U,U), g(U,U,U,U)],
+      [g(U,U,U,U), g(U,U,U,T)],
+      [g(U,U,T,U), g(U,U,U,T)],
+      [g(U,T,T,U), g(U,U,U,T)],
+      [g(T,T,T,U), g(U,U,U,T)],
+      [g(T,T,T,F), g(F,F,F,T)]
+    ],
+    C:[
+      {k:'init', t:'初期状態', b:'全セル未知。<span class="m">q@i</span> は「状態 q で位置 i から読み始めて、残りを受理できるか」。'},
+      {k:'fire', t:'発火 (1) — 事実だけの節', b:'<span class="m">q1@i ← ŵ[i]=⊣</span> は位置 4 でだけ成立。前提を持たない節はここだけ。'},
+      {k:'fire', t:'発火 (2)', b:'<span class="m">q0@i ← ŵ[i]=b, q1@(i+1)</span> が <span class="m">i=3</span> で発火。'},
+      {k:'fire', t:'発火 (3)', b:'<span class="m">q0@i ← ŵ[i]=a, q0@(i+1)</span> が <span class="m">i=2</span> で発火。'},
+      {k:'fire', t:'発火 (4)', b:'同じ節が <span class="m">i=1</span> で発火。<b><span class="m ok">q0@1 = T</span> なので aab は受理される。</b>'},
+      {k:'close', t:'閉包 — 飽和後', b:'残った <span class="m">U</span> を <span class="m fl">F</span> に。<br><b>注目:</b> 導出は位置 4 → 3 → 2 → 1 と<b>一方向にしか進まなかった</b>。再訪は一度もない。'}
+    ]
+  };
+
+  /* (2a) two-way with a genuine reversal.  w = a b c ⊣ */
+  CFG.d2 = {
+    id:'d2', small:true, word:['a','b','c','⊣'], rows:['f','g','h'],
+    S:[
+      [g(U,U,U,U), g(U,U,U,U), g(U,U,U,U)],
+      [g(U,U,U,U), g(U,U,U,U), g(T,U,U,U)],
+      [g(U,U,U,U), g(U,T,U,U), g(T,U,U,U)],
+      [g(U,U,T,U), g(U,T,U,U), g(T,U,U,U)],
+      [g(T,T,T,U), g(U,T,U,U), g(T,U,U,U)],
+      [g(T,T,T,F), g(F,T,F,F), g(T,F,F,F)]
+    ],
+    C:[
+      {k:'init', t:'初期状態', b:'節は 4 本。うち 2 本の前提が <span class="m">i−1</span> を指します。'},
+      {k:'fire', t:'発火 (1)', b:'<span class="m">h@i ← ŵ[i]=a</span> が位置 1 で成立。'},
+      {k:'fire', t:'発火 (2) — 左へ 1 歩', b:'<span class="m">g@i ← ŵ[i]=b, h@(i−1)</span>。<span class="m">i=2</span> で発火し、<b>左隣</b>のセルを読んだ。'},
+      {k:'fire', t:'発火 (3) — ここが向きの反転', b:'<span class="m">f@i ← ŵ[i]=c, g@(i−1)</span>。<span class="m">i=3</span> で発火。<br><b>右へスキャンしていた f が、左隣の g を読んで確定した。</b>'},
+      {k:'fire', t:'発火 (4) — 今度は右向きの連鎖', b:'<span class="m">f@i ← ŵ[i] ∈ {a,b}, f@(i+1)</span> が <span class="m">i=2</span>、続いて <span class="m">i=1</span> で発火。<br><b>確定していく位置が 1 → 2 → 3 でも 3 → 2 → 1 でもない。</b>'},
+      {k:'close', t:'閉包', b:'残りを <span class="m fl">F</span> に。<br><b>決め打ちの走査順では書けないので、ここでワークリストが要る。</b>ただしこの機械には循環がないので、各セルは一度確定したら動かない。'}
+    ]
+  };
+
+  /* (2b) two-way with an unfounded cycle.  w = a b a ⊣ */
+  CFG.d2b = {
+    id:'d2b', small:true, word:['a','b','a','⊣'], rows:['p','q'],
+    S:[
+      [g(U,U,U,U), g(U,U,U,U)],
+      [g(U,U,U,U), g(U,U,U,T)],
+      [g(U,U,T,U), g(U,U,U,T)],
+      [g(U,U,T,U), g(U,U,U,T)],
+      [g(F,F,T,F), g(F,F,F,T)]
+    ],
+    M:[ null, null, null, [[0,0],[1,1]], [[0,0],[1,1]] ],
+    C:[
+      {k:'init', t:'初期状態', b:'<span class="m">p</span> は a を読んで右へ、<span class="m">q</span> は b を読んで左へ。<b>進んだ分をそのまま戻す</b>組み合わせ。'},
+      {k:'fire', t:'発火 (1)', b:'<span class="m">q@i ← ŵ[i]=⊣</span> が位置 4 で発火。'},
+      {k:'fire', t:'発火 (2)', b:'<span class="m">p@i ← ŵ[i]=a, q@(i+1)</span> が <span class="m">i=3</span> で発火。<br><span class="m ok">p@3</span> は<b>有限の run</b> を持つ: 3 で a を読んで 4 へ、⊣ で受理。'},
+      {k:'stuck', t:'飽和 — しかし 2 セルが残った', b:'発火できる節がもう無い。だが <span class="m">p@1</span> と <span class="m">q@2</span> は<b>互いを待っている</b>。<br><span class="m">p@1 ← ŵ[1]=a, q@2</span><br><span class="m">q@2 ← ŵ[2]=b, p@1</span><br>実行としては head が位置 1 と 2 を<b>無限に往復する run</b>。'},
+      {k:'close', t:'閉包 — 循環は失敗になる', b:'<b>最小不動点はこの循環を <span class="m fl">F</span> と読む。</b>無限に往復する run は受理ではないので、これが正しい (最大不動点なら <span class="m ok">T</span> になってしまう)。<br><b>「有限の run tree が存在するか」の<u>有限性</u>が効くのは、ここ。</b>'}
+    ]
+  };
+
+  /* (3) alternating two-way : E3 = a ?<-(ab) ?->(b u c).  w = a b a c */
+  CFG.d3 = {
+    id:'d3', small:true, word:['a','b','a','c'], rows:['u','m','x','x′','y'],
+    S:[
+      [g(U,U,U,U), g(U,U,U,U), g(U,U,U,U), g(U,U,U,U), g(U,U,U,U)],
+      [g(U,U,U,U), g(U,U,U,U), g(U,U,U,U), g(T,U,T,U), g(U,T,U,T)],
+      [g(U,U,U,U), g(U,U,U,U), g(U,T,U,U), g(T,U,T,U), g(U,T,U,T)],
+      [g(U,U,U,U), g(U,T,U,U), g(U,T,U,U), g(T,U,T,U), g(U,T,U,T)],
+      [g(T,U,U,U), g(U,T,U,U), g(U,T,U,U), g(T,U,T,U), g(U,T,U,T)],
+      [g(T,F,F,F), g(F,T,F,F), g(F,T,F,F), g(T,F,T,F), g(F,T,F,T)]
+    ],
+    C:[
+      {k:'init', t:'初期状態', b:'行が 5 本に増えたが、セルの意味も伝播の仕組みも ①② と同一。'},
+      {k:'fire', t:'発火 (1) — 事実だけの節', b:'<span class="m">x′</span> は「ここが a」(位置 1, 3)、<span class="m">y</span> は「ここが b か c」(位置 2, 4)。<br><span class="m">y</span> の 2 本は<b>∨ ノードを潰したもの</b>で、head が同じ節が 2 本あるだけ。'},
+      {k:'fire', t:'発火 (2)', b:'<span class="m">x@i ← ŵ[i]=b, x′@(i−1)</span> が <span class="m">i=2</span> で発火。<br>「位置 2 で終わる 2 文字が ab」という後ろ向きの probe。'},
+      {k:'fire', t:'発火 (3) — ∧ ノード', b:'<span class="m">m@i ← x@i, y@i</span>。<b>前提が 2 つとも揃って初めて</b>発火する。<br><b>ここで証明が木に分岐した。</b>run はもう一本道ではない。'},
+      {k:'fire', t:'発火 (4)', b:'<span class="m">u@i ← ŵ[i]=a, m@(i+1)</span> が <span class="m">i=1</span> で発火。<br><b><span class="m">E₃</span> は位置 1 で成功する</b> (a を読んで 2 へ、そこで ab の lookbehind と b の lookahead が両立)。'},
+      {k:'close', t:'閉包', b:'残りを <span class="m fl">F</span> に。<b>位置 1 で成功、位置 3 で失敗。</b><br><b>アルゴリズムは ②a ②b から 1 行も変わっていない。</b>∧ はワークリストのカウンタが 2 になるだけ。'}
+    ]
+  };
+
+  /* (4) stratified 2BFA : E_ex.  w = a b a c */
+  CFG.d4 = {
+    id:'d4', word:['a','b','a','c'],
+    rows:['q_Σ','q_in','q_a','q⁰_ab','q¹_ab','q_{b<span class="u">∪</span>c}'],
+    groups:[{n:'Q₂ (最上位)', r:[0,1]},{n:'Q₁', r:[2]},{n:'Q₀ (最下位・先に閉じる)', r:[3,4,5]}],
+    S:[
+      [g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(U,U,U,U)],
+      [g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(T,U,T,U),g(U,T,U,T)],
+      [g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(U,T,U,U),g(T,U,T,U),g(U,T,U,T)],
+      [g(U,U,U,U),g(U,U,U,U),g(U,U,U,U),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)],
+      [g(U,U,U,U),g(U,U,U,U),g(U,U,T,U),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)],
+      [g(U,U,U,U),g(U,U,U,U),g(F,F,T,F),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)],
+      [g(T,T,T,T),g(U,U,U,U),g(F,F,T,F),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)],
+      [g(T,T,T,T),g(T,T,U,T),g(F,F,T,F),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)],
+      [g(T,T,T,T),g(T,T,F,T),g(F,F,T,F),g(F,T,F,F),g(T,F,T,F),g(F,T,F,T)]
+    ],
+    C:[
+      {k:'init', t:'初期状態', b:'③ との差は <span class="m fl">¬</span> が 2 本入ったことだけ。だがそのせいで表が <b>3 つの world</b> に分かれ、<b>下から順にしか埋められなくなった</b>。'},
+      {k:'fire', t:'発火 (1) — Q₀ の事実だけの節', b:'③ のステップ 1 と全く同じ。<span class="m">q¹_ab</span> が位置 1, 3、<span class="m">q_{b<span class="u">∪</span>c}</span> が位置 2, 4。'},
+      {k:'fire', t:'発火 (2) — Q₀', b:'<span class="m">q⁰_ab@2</span> が出る。これで Q₀ の正の飽和は終わり。<br><b>上の world はまだ一つも動けない。</b>'},
+      {k:'close', t:'閉包 (3) — Q₀ を閉じる', b:'<b>規則の発火ではない。</b>残った <span class="m">U</span> を一斉に <span class="m fl">F</span> に置き換える。<br>これで初めて <span class="m fl">q⁰_ab@4 ⇑</span> が Q₁ から読めるようになる。'},
+      {k:'fire', t:'発火 (4) — Q₁', b:'<span class="m">q_a@i ← ŵ[i]=a, q⁰_ab@(i+1)⇑, q_{b<span class="u">∪</span>c}@(i+1)</span>。<br><span class="m">i=3</span> のみ成立。<span class="m">i=1</span> は <span class="m ok">q⁰_ab@2 = T</span> なので <span class="m fl">⇑</span> が成り立たない。<br><b>③ と答えが反転した</b> — 否定を入れた効果がここに出る。'},
+      {k:'close', t:'閉包 (5) — Q₁ を閉じる', b:'<span class="m">q_a</span> 行の残りが <span class="m fl">F</span> に。今度は Q₂ が <span class="m fl">q_a@i ⇑</span> を読めるようになる。'},
+      {k:'fire', t:'発火 (6) — Q₂', b:'<span class="m">q_Σ@i ← ŵ[i] ∈ Σ</span> は全位置で成立 (外側の <span class="m">any</span>)。'},
+      {k:'fire', t:'発火 (7) — Q₂', b:'<span class="m">q_in@i ← q_a@i ⇑, q_Σ@i</span>。位置 1, 2, 4 で発火。位置 3 は <span class="m ok">q_a@3 = T</span> なので不発。'},
+      {k:'close', t:'閉包 (8) — 完了', b:'<span class="m">q_in@3</span> が <span class="m fl">F</span> に確定。<br><b>regex の直接の意味論と一致: <span class="m">E_ex</span> は位置 3 だけで失敗。</b>'}
+    ]
+  };
+
+  /* (5) endpoint-valued PEG  P <- Q/a,  Q <- a P  on w = aab.
+         Each step closes exactly one completion world; the ring shows which cells it holds. */
+  CFG.d5 = {
+    id:'d5', small:true, word:['a','a','b','⊣'], rows:['A','Q','P'],
+    S:[
+      [g(U,U,U,U), g(U,U,U,U), g(U,U,U,U)],
+      [g(U,U,U,F), g(U,U,U,F), g(U,U,U,U)],
+      [g(U,U,U,F), g(U,U,U,F), g(U,U,U,F)],
+      [g(U,U,F,F), g(U,U,F,F), g(U,U,U,F)],
+      [g(U,U,F,F), g(U,U,F,F), g(U,U,F,F)],
+      [g(U,'3',F,F), g(U,F,F,F), g(U,U,F,F)],
+      [g(U,'3',F,F), g(U,F,F,F), g(U,'3',F,F)],
+      [g('2','3',F,F), g('3',F,F,F), g(U,'3',F,F)],
+      [g('2','3',F,F), g('3',F,F,F), g('3','3',F,F)]
+    ],
+    M:[ null, [[0,3],[1,3]], [[2,3]], [[0,2],[1,2]], [[2,2]],
+        [[0,1],[1,1]], [[2,1]], [[0,0],[1,0]], [[2,0]] ],
+    C:[
+      {k:'init', t:'初期状態', b:'セルは <span class="m">U</span> / <span class="m fl">F</span> / <b>選ばれた終点の番号</b> の三値。<br>各ステップで<b>ちょうど一つの world</b> を飽和させて閉じます。輪で囲まれたセルがその world。'},
+      {k:'close', t:'world (0,0) = {A@4, Q@4}', b:'<b>world は行ではなくセルの集合。</b> 位置 4 は語の外なので <span class="m">A@4</span> は失敗、<span class="m">Q@4</span> もそれに依存して失敗。'},
+      {k:'close', t:'world (0,1) = {P@4}', b:'<span class="m">ρ_fb</span> は <span class="m fl">Q@4 ⇑</span> を要求する。今それは読める。だが <span class="m">A@4</span> も失敗なので <span class="m">P@4</span> も失敗。'},
+      {k:'close', t:'world (1,0) = {A@3, Q@3}', b:'<span class="m">ŵ[3]=b</span> なので <span class="m">A@3</span> は失敗。<span class="m">Q@3</span> も <span class="m">A@3</span> を要求するので失敗。'},
+      {k:'close', t:'world (1,1) = {P@3}', b:'<span class="m fl">Q@3 ⇑</span> が<b>今</b>読めるようになった。しかし <span class="m">A@3 ⇓ 4</span> が無いので <span class="m">ρ_fb</span> も不発 → <span class="m">P@3</span> 失敗。'},
+      {k:'close', t:'world (2,0) = {A@2, Q@2}', b:'<span class="m ok">A@2 ⇓ 3</span>。<span class="m">Q@2</span> は <span class="m">ρ_rec</span> で <span class="m">P@3 ⇓ k</span> を要求するが <span class="m">P@3</span> は失敗 → <span class="m">Q@2</span> も失敗で閉じる。'},
+      {k:'close', t:'world (2,1) = {P@2}', b:'<span class="m fl">Q@2 ⇑</span> が読めるようになり、<span class="m">ρ_fb</span> がようやく発火 → <span class="m ok">P@2 ⇓ 3</span>。<br><b>ordered choice の右枝が使えるのは、左枝の失敗が確定してから。</b>'},
+      {k:'close', t:'world (3,0) = {A@1, Q@1}', b:'<span class="m ok">A@1 ⇓ 2</span>。そして <span class="m ok">P@2 ⇓ 3</span> は既にある → <span class="m">ρ_rec</span> で <span class="m ok">Q@1 ⇓ 3</span>。'},
+      {k:'close', t:'world (3,1) = {P@1}', b:'<span class="m">ρ_Qok</span> で <span class="m ok">P@1 ⇓ 3</span>。<span class="m">a⁺</span> の最長一致が得られた。<br><b>輪が斜めに降りてきたことに注目。行 P は 4 つの異なる world に散っている。</b>'}
+    ]
+  };
+
+  /* ============ generic renderer ============ */
+  function rowHtml(c, r){
+    var h = '<tr><td class="lab">' + c.rows[r] + '</td>';
+    for(var p=0;p<c.word.length;p++)
+      h += '<td class="c"><div class="chip U" id="'+c.id+'-'+r+'-'+p+'">U</div></td>';
+    return h + '</tr>';
+  }
+  function build(c){
+    c.step = 0;
+    var sm = c.small ? ' sm' : '';
+    var h = '<table class="tb'+sm+'"><tr><th class="lh"></th>';
+    for(var p=0;p<c.word.length;p++) h += '<th>'+(p+1)+'</th>';
+    h += '</tr>';
+    if(c.groups){
+      for(var gi=0; gi<c.groups.length; gi++){
+        var G = c.groups[gi];
+        h += '<tr class="wsep"><td colspan="'+(c.word.length+1)+'">'+G.n+'</td></tr>';
+        for(var k=0;k<G.r.length;k++) h += rowHtml(c, G.r[k]);
+      }
+    } else {
+      for(var r=0;r<c.rows.length;r++) h += rowHtml(c, r);
+    }
+    h += '</table><div class="dtape'+sm+'"><span class="sp"></span>';
+    for(var p2=0;p2<c.word.length;p2++) h += '<b>'+c.word[p2]+'</b>';
+    h += '</div>';
+    document.getElementById(c.id+'-tbl').innerHTML = h;
+    draw(c);
+  }
+  function draw(c){
+    var now = c.S[c.step], prev = c.step>0 ? c.S[c.step-1] : null;
+    var marks = (c.M && c.M[c.step]) || [];
+    for(var r=0;r<c.rows.length;r++){
+      for(var p=0;p<c.word.length;p++){
+        var el = document.getElementById(c.id+'-'+r+'-'+p);
+        if(!el) continue;
+        var v = now[r][p], cls = 'chip ' + ((v==='U'||v==='F') ? v : 'T');
+        if(prev && prev[r][p] !== v) cls += ' hit';
+        for(var m=0;m<marks.length;m++) if(marks[m][0]===r && marks[m][1]===p) cls += ' mk';
+        el.className = cls; el.textContent = v;
+      }
+    }
+    var cap = c.C[c.step];
+    var names = {fire:'RULE', close:'CLOSURE', stuck:'SATURATED', init:'START'};
+    var box = document.getElementById(c.id+'-cap');
+    box.innerHTML = '<span class="badge b-'+cap.k+'">'+names[cap.k]+'</span>'
+      + '<div style="font-size:17px;font-weight:700;margin:9px 0 7px">'+cap.t+'</div>'
+      + '<div style="font-size:14.5px;line-height:1.72">'+cap.b+'</div>';
+    box.className = 'box ' + (cap.k==='close' ? 'k' : cap.k==='fire' ? 'g' : cap.k==='stuck' ? 'w' : '');
+    document.getElementById(c.id+'-cnt').textContent = c.step + ' / ' + (c.S.length-1);
+    var btns = document.querySelectorAll('[data-demo="'+c.id+'"]');
+    for(var i=0;i<btns.length;i++){
+      var d = +btns[i].getAttribute('data-dir');
+      btns[i].disabled = (d<0 && c.step===0) || (d>0 && c.step===c.S.length-1);
+    }
+  }
+  function move(c, d){
+    var n = c.step + d;
+    if(n < 0 || n >= c.S.length) return false;
+    c.step = n; draw(c); return true;
+  }
+  for(var k in CFG) if(CFG.hasOwnProperty(k)) build(CFG[k]);
+
+  document.addEventListener('click', function(e){
+    var b = e.target.closest && e.target.closest('[data-demo]');
+    if(b && b.tagName === 'BUTTON') move(CFG[b.getAttribute('data-demo')], +b.getAttribute('data-dir'));
+  });
+
+  /* ============ slide navigation ============ */
+  var slides = [].slice.call(document.querySelectorAll('.slide'));
+  var cur = 0;
+  function demoOf(i){ var d = slides[i].getAttribute('data-demo'); return d ? CFG[d] : null; }
+  function show(i){
+    slides[cur].classList.remove('on');
+    cur = Math.max(0, Math.min(slides.length-1, i));
+    slides[cur].classList.add('on');
+  }
+  function fwd(){
+    var d = demoOf(cur);
+    if(d && move(d, 1)) return;
+    if(cur < slides.length-1){
+      show(cur+1);
+      var nd = demoOf(cur); if(nd){ nd.step = 0; draw(nd); }
+    }
+  }
+  function back(){
+    var d = demoOf(cur);
+    if(d && move(d, -1)) return;
+    if(cur > 0){
+      show(cur-1);
+      var nd = demoOf(cur); if(nd){ nd.step = nd.S.length-1; draw(nd); }
+    }
+  }
+  document.addEventListener('keydown', function(e){
+    if(e.key==='ArrowRight'||e.key==='PageDown'||e.key===' '){ e.preventDefault(); fwd(); }
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){ e.preventDefault(); back(); }
+    else if(e.key==='Home'){ show(0); }
+    else if(e.key==='End'){ show(slides.length-1); }
+  });
+})();
+</script>
+</body>
+</html>
